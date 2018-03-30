@@ -1,0 +1,55 @@
+1 have the nodejs server render views/index.ejs that has the html content fot the client when the client request '/'.
+
+routings/index.js
+
+app.get ('/', function(req,res){
+    res.render('index', {});
+});
+
+
+2 In the clients codes, have a js ask the user for their name and store this user input in a var called name.
+
+<script>
+    var name = prompt ('What is your name?');
+</script>
+
+3 have the client EMIT "got_a_new_user" and pass "name" to the server.
+
+<script>
+    var name = prompt ('what is your name?');
+    io = io.connect(); //***IO IS SOCKET***//
+    io.emit('got_a_new_user', {name: name});
+</script>
+
+4 Have the server LISTEN for an event called 'got_a_new_user' and when that event gets triggered,
+4.1) have the server BROADCAST AN EVENT TO the clients called 'new_user' to the clients with the name with the name of the new user attached to this event,
+
+app.io.route('got_a_new_user', function(req)){
+    app.io.broadcast('new_user',{new_user_name: req.data.name});
+});
+
+4.2) we store the name/session_id of the new user in a variable/array/hash called users, 
+
+var users = [];
+//you can have an array of hashes that contain users names
+var users = [
+    {name: '', sessionid:''},
+    {name: '', sessionid:''}
+]
+
+4.3) to the person whom sent this request, the server EMITS an event called 'existing_users' with all the users data.
+IT also shows all the previous chats.
+
+//in the same got_a_new_user from above,
+req.io.emit('exisiting_users', users);
+req.io.emit('exisiting_chats', chats);
+
+
+5 Have the client LISTEN for an event called 'new_user' and when this even gets triggered, have the client render this information in Jquery somewhere in the html.
+
+io.on('new_user',function(data){
+    //render this info in the HTML
+})
+
+
+

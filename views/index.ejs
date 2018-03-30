@@ -1,0 +1,75 @@
+<html>
+    <head>
+    <title></title>
+        <link rel='stylesheet' href='/stylesheets/style.css' />
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script type ="text/javascript" src="/socket.io/socket.io.js"></script>
+        <script type ="text/javascript">
+             $(document). ready(function (){
+                var name = prompt ('What is your name?');
+                // this triggers the connection event in our server!
+                var socket  = io.connect();
+                // we'll write all the socket stuff after the above line!
+                socket.emit('got_a_new_user', {name: name});
+                socket.on('this_user', function (data){
+                    var user = data;
+                    console.log(`client has ${JSON.stringify(user.response.name)} with id ${user.response.id}`);
+                    //console.log(`data name is ${data}`);
+                    $('#chat').submit(function (){
+                        //socket.emit( "posting_form", {reason:  "I clicked submit!"});
+                        var message = $("#chatId").val();
+                        socket.emit( "posting_form", {name: user.response.name, message:message});
+                        return false;
+                    });
+                });
+
+                
+
+                //listen for new_user event from server
+                socket.on( 'new_user', function (data){
+                    $("#response").html(`We have a new user ${JSON.stringify(data.new_user_name)}`);
+                })
+                //listen for existing_users event from the server
+                socket.on( 'existing_users', function (data){
+                   
+                    $("#user_list").append(`<p>${JSON.stringify(data)}</p>`);
+                })
+ 
+
+                //handle a button click
+                $('#epic').click(function (){
+                    socket.emit( "epic_click", {reason:  "The EPIC click button was clicked"});
+                });
+                $('#reset').click(function (){
+                    socket.emit( "reset_click", {reason:  "The RESET click button was clicked"});
+                });
+                
+                //end emits, listen for server response.
+                //socket.on( 'send_count', function (data){console.log( 'The server says: '  + data.response);
+                socket.on( 'send_count', function (data){
+                $("#response").html(`The button has been pushed ${data.response} times`);
+                });
+
+                socket.on( 'server_form_response', function (data){
+                    $("#response").html(`You emmitted this info to the server ${JSON.stringify(data.response)}`);
+                });
+                socket.on( 'random_number', function (data){
+                    $("#response").append(`<h4>Your lucky number emmitted by the server is ${data.response}</h4>`);
+                });
+
+
+            })
+        </script>
+    </head>
+    <body>
+       
+        <div id='response'></div>
+        <!-- <div id='user_list'>User List: </div> -->
+
+        <form id = 'chat'>
+                    <textarea name="chat" id = 'chatId' rows="1" cols="40"></textarea>
+                <input type='submit' value='Submit'></p>
+            </form>
+    </body>
+    </html>
+    
