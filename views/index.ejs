@@ -9,26 +9,55 @@
                 var name = prompt ('What is your name?');
                 // this triggers the connection event in our server!
                 var socket  = io.connect();
+                let user;
                 // we'll write all the socket stuff after the above line!
                 socket.emit('got_a_new_user', {name: name});
                 // listen for message even from server.
-                socket.on('userdata', function(data){
-                    console.log (`Recieved ${JSON.stringify(data)} back from server`);
-                    $("#chatarea").append(`${(data.name)} `);
+                
+                socket.on('userdata', addUser);
+                // socket.on('userdata', function(data){
+                //     console.log (`Recieved ${JSON.stringify(data)} back from server`);
+                //     addUser(data);
+                //     //$("#userList").append(`<p id = '${data.id}'> For current users only ${(data.name)}</p>`);
+                // })
+                socket.on('allUsers', function(users){
+                    console.log(`Recd ${users}`)
+                    for (const user of users){
+                        addUser(user);
+                    }
+                })
+                
+                function addUser(user){
+                    $("#userList").append(`<p id = '${user.id}'> name: ${(user.name)}</p>`);  
+                }
+
+                socket.on('userDetails', function(data){
+                    user=data;
                 })
 
                 //handle the form being submitted
                 $('#chat').submit(function (){
                     var msg = $("#chatId").val();
+                    $("#chatId").val('');
+                    console.log(`submitting, ${msg}`);
                     //emit form data and their name
-                    socket.emit( "message", {name: name, message: msg});
+                    socket.emit( "message", {id: user.id, message: msg});
                 return false;
                 });
 
+                function addMessage(message){
+                    $('#chatarea').append(`<p>${message.timeStamp} ${message.user.name} ${message.message}</p>`)
+                }
+
                 //listen for messageBack and render this on the page.
-                socket.on('messageBack', function(data){
-                    //$('#chatarea').append(`User ${data.name} says ${data.message}`)
-                    $('#chatarea').append(`Got these messages ${data.messages}`)
+                socket.on('messageBack', addMessage)
+                    // for (index = 0; index < data.messages.length; index++){
+                    //     console.log(`dataMessage ${data.messages[index].message}`);
+                    //     $('#chatarea').append(data.messages[index].message);
+
+                //all messages for new user
+                socket.on('allMessages',function(messages){
+                    messages.forEach(addMessage); //each element is passed to addMessage and addMessage is invoked.
                 })
                 
                 // socket.on('this_user', function (data){
@@ -77,6 +106,7 @@
     </head>
     <body>
        
+        <div id='userList'></div>
         <div id='chatarea'></div>
         <form id = 'chat'>
                 <textarea name="chat" id = 'chatId' rows="1" cols="40"></textarea>
