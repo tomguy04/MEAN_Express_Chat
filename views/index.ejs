@@ -11,17 +11,37 @@
                 var socket  = io.connect();
                 // we'll write all the socket stuff after the above line!
                 socket.emit('got_a_new_user', {name: name});
-                socket.on('this_user', function (data){
-                    var user = data;
-                    console.log(`client has ${JSON.stringify(user.response.name)} with id ${user.response.id}`);
-                    //console.log(`data name is ${data}`);
-                    $('#chat').submit(function (){
-                        //socket.emit( "posting_form", {reason:  "I clicked submit!"});
-                        var message = $("#chatId").val();
-                        socket.emit( "posting_form", {name: user.response.name, message:message});
-                        return false;
-                    });
+                // listen for message even from server.
+                socket.on('userdata', function(data){
+                    console.log (`Recieved ${JSON.stringify(data)} back from server`);
+                    $("#chatarea").append(`${(data.name)} `);
+                })
+
+                //handle the form being submitted
+                $('#chat').submit(function (){
+                    var msg = $("#chatId").val();
+                    //emit form data and their name
+                    socket.emit( "message", {name: name, message: msg});
+                return false;
                 });
+
+                //listen for messageBack and render this on the page.
+                socket.on('messageBack', function(data){
+                    //$('#chatarea').append(`User ${data.name} says ${data.message}`)
+                    $('#chatarea').append(`Got these messages ${data.messages}`)
+                })
+                
+                // socket.on('this_user', function (data){
+                //     var user = data;
+                //     console.log(`client has ${JSON.stringify(user.response.name)} with id ${user.response.id}`);
+                //     //console.log(`data name is ${data}`);
+                //     $('#chat').submit(function (){
+                //         //socket.emit( "posting_form", {reason:  "I clicked submit!"});
+                //         var message = $("#chatId").val();
+                //         socket.emit( "posting_form", {name: user.response.name, message:message});
+                //         return false;
+                //     });
+                // });
 
                 
 
@@ -31,7 +51,6 @@
                 })
                 //listen for existing_users event from the server
                 socket.on( 'existing_users', function (data){
-                   
                     $("#user_list").append(`<p>${JSON.stringify(data)}</p>`);
                 })
  
@@ -53,23 +72,16 @@
                 socket.on( 'server_form_response', function (data){
                     $("#response").html(`You emmitted this info to the server ${JSON.stringify(data.response)}`);
                 });
-                socket.on( 'random_number', function (data){
-                    $("#response").append(`<h4>Your lucky number emmitted by the server is ${data.response}</h4>`);
-                });
-
-
             })
         </script>
     </head>
     <body>
        
-        <div id='response'></div>
-        <!-- <div id='user_list'>User List: </div> -->
-
+        <div id='chatarea'></div>
         <form id = 'chat'>
-                    <textarea name="chat" id = 'chatId' rows="1" cols="40"></textarea>
+                <textarea name="chat" id = 'chatId' rows="1" cols="40"></textarea>
                 <input type='submit' value='Submit'></p>
-            </form>
+        </form>
     </body>
     </html>
     
