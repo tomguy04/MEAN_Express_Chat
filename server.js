@@ -95,6 +95,25 @@ io.sockets.on('connection', function (socket, request, response) { //when a clie
         io.emit('messageBack', newMessage);
         //console.log(data.name);
     })
+
     //a client closes their window:
     //socket.on
+    socket.on('disconnect', function(){
+        //io.emit('user_leave', `SOMEONE LEFT with socket id of ${socket.id}`);
+        const user = allUsers.find(possibleUser => possibleUser.id === socket.id) //if the user id in the array matches the id passed on the event, do something.
+        if (user){console.log(`found the user ${user.name}`);
+        //.splice -> remove x items at position y 
+        //loop through array, removed the element at the index where socket.id === user.id
+        for (let index = 0; index < allUsers.length; index++){
+            if (allUsers[index].id === user.id){
+                console.log(`found the user again ${allUsers[index].name}`);
+                console.log(`index is ${index}`);
+                allUsers.splice(index,1);
+            }
+        }
+    }
+        //after this, send out again to everyone else the user list.
+        socket.broadcast.emit('allUsers', allUsers);
+        //io.emit('user_leave', `SOMEONE LEFT with socket id of ${socket.id} named ${user.name}`);
+    });
 })

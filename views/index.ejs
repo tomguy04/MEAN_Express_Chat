@@ -21,6 +21,14 @@
                 //     //$("#userList").append(`<p id = '${data.id}'> For current users only ${(data.name)}</p>`);
                 // })
                 socket.on('allUsers', function(users){
+                    $("#userList").html(``);  
+                    console.log(`Recd ${users}`)
+                    for (const user of users){
+                        addUser(user);
+                    }
+                })
+
+                socket.on('revisedUsers', function(users){
                     console.log(`Recd ${users}`)
                     for (const user of users){
                         addUser(user);
@@ -29,6 +37,11 @@
                 
                 function addUser(user){
                     $("#userList").append(`<p id = '${user.id}'> name: ${(user.name)}</p>`);  
+                }
+
+                function revisehUser(user){
+                    $("#userList").html(`<p id = '${user.id}'> name: ${(user.name)}</p>`);  
+                    $("#userList").html(`<p id = '${user.id}'> name: ${(user.name)}</p>`);  
                 }
 
                 socket.on('userDetails', function(data){
@@ -58,6 +71,10 @@
                 //all messages for new user
                 socket.on('allMessages',function(messages){
                     messages.forEach(addMessage); //each element is passed to addMessage and addMessage is invoked.
+                })
+
+                socket.on('user_leave', function(user){
+                    console.log(`window closed ${user}`);
                 })
                 
                 // socket.on('this_user', function (data){
